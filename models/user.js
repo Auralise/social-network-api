@@ -11,12 +11,12 @@ const userSchema = new Schema({
     email: {
         type: String,
         required: true,
-        unique: true, 
+        unique: true,
         validator: {
             validator: function (email) {
                 return /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/i.test(email);
             },
-            message:  "Please provide a valid email address",
+            message: "Please provide a valid email address",
         }
     },
     thoughts: {
