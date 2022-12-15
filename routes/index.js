@@ -6,8 +6,9 @@ router.use("/api", apiRoutes);
 
 router.use("*", (req, res) => {
     res.status(404).json({
-        message: "This route does not exists",
+        message: "Route not found",
     });
+    return;
 });
 
 module.exports = router;
