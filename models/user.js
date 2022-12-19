@@ -12,7 +12,7 @@ const userSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        validator: {
+        validate: {
             validator: function (email) {
                 return /^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/i.test(email);
             },
