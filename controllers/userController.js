@@ -1,4 +1,4 @@
-const { User } = require("../models");
+const { User, Thought } = require("../models");
 
 
 const getAllUsers = (req, res) => {
@@ -11,7 +11,7 @@ const getAllUsers = (req, res) => {
 };
 
 const getUserById = (req, res) => {
-    User.findById(req.params.id)
+    User.findById(req.params.userId)
         .then((user) => {
             if (!user) {
                 res.status(404).json({
@@ -35,6 +35,7 @@ const createNewUser = (req, res) => {
         res.status(400).json({
             message: "Please ensure that you include both a username and an email in the request body",
         });
+        return;
     }
 
     User.create({
@@ -43,10 +44,10 @@ const createNewUser = (req, res) => {
         thoughts: [],
         friends: [],
     })
-        .then((status) => {
+        .then((user) => {
             res.status(201).json({
                 message: "Successfully created User",
-                status
+                user
             });
         })
         .catch((err) => {
@@ -60,7 +61,7 @@ const createNewUser = (req, res) => {
 
 
 const updateUser = (req, res) => {
-    User.findById(req.params.id)
+    User.findById(req.params.userId)
         .then((user) => {
             if (!user) {
                 res.status(404).json({
@@ -75,9 +76,11 @@ const updateUser = (req, res) => {
                 return;
             }
 
-            User.findByIdAndUpdate(req.params.id, {
+            User.findByIdAndUpdate(req.params.userId, {
                 username: req.body.username || user.username,
                 email: req.body.email || user.email,
+            }, {
+                new: true,
             })
                 .then((status) => {
                     res.status(200).json({
@@ -101,7 +104,47 @@ const updateUser = (req, res) => {
 };
 
 const deleteUser = (req, res) => {
+    User.findById(req.params.userId)
+    .then((user)=> {
+        if(!user){
+            res.status(404).json({
+                message: "Could not find user with that ID",
+            });
+            return;
+        }
 
+        Thought.deleteMany({
+            _id: {$in: user.thoughts},
+        })
+        .then((thoughtDeletionStats)=>{
+            User.findByIdAndDelete(req.params.userId)
+            .then((userDeletionStats)=>{
+                res.status(200).json({
+                    message: "Successfully deleted user and all associated thoughts",
+                    userDeletionStats,
+                    thoughtDeletionStats
+                });
+            })
+            .catch((err) => {
+                throw new Error(err);
+            })
+
+
+        })
+        .catch((err)=>{
+            throw new Error(err);
+        });
+
+        
+
+
+    })
+    .catch((err) => {
+        res.status(500).json({
+            message: "An internal server error occurred",
+            err
+        })
+    });
 };
 
 const addNewFriend = (req, res) => {
