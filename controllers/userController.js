@@ -105,104 +105,177 @@ const updateUser = (req, res) => {
 
 const deleteUser = (req, res) => {
     User.findById(req.params.userId)
-    .then((user)=> {
-        if(!user){
-            res.status(404).json({
-                message: "Could not find user with that ID",
-            });
-            return;
-        }
-
-        Thought.deleteMany({
-            _id: {$in: user.thoughts},
-        })
-        .then((thoughtDeletionStats)=>{
-            User.findByIdAndDelete(req.params.userId)
-            .then((userDeletionStats)=>{
-                res.status(200).json({
-                    message: "Successfully deleted user and all associated thoughts",
-                    userDeletionStats,
-                    thoughtDeletionStats
-                });
-            })
-            .catch((err) => {
-                throw new Error(err);
-            })
-
-
-        })
-        .catch((err)=>{
-            throw new Error(err);
-        });
-
-        
-
-
-    })
-    .catch((err) => {
-        res.status(500).json({
-            message: "An internal server error occurred",
-            err
-        })
-    });
-};
-
-const addNewFriend = (req, res) => {
-    User.findById(req.params.userId)
-    .then((user)=> {
-        if(!user){
-            res.status(404).json({
-                message: "No user with this ID found",
-            });
-            return;
-        }
-        if(user.friends.includes(req.params.friendId)){
-            res.status(400).json({
-                message: "These users are already friends",
-            });
-            return;
-        }
-
-        User.findById(req.params.friendId)
-        .then((friend)=> {
-            if(!friend){
+        .then((user) => {
+            if (!user) {
                 res.status(404).json({
-                    message: "No user with this ID found to add as a friend"
+                    message: "Could not find user with that ID",
                 });
                 return;
             }
 
-            user.friends.push(friend._id);
-            friend.friends.push(user._id);
-            user.save((err)=> {
-                if(err){
-                    throw new Error(err);
-                } 
-            });
-            friend.save((err)=> {
-                if(err){
-                    throw new Error(err);
-                }
+            Thought.deleteMany({
+                _id: { $in: user.thoughts },
+            })
+                .then((thoughtDeletionStats) => {
+                    // Thought needs to be put into how to remove the user ID from friends lists. This would be where it is done
+                    User.findByIdAndDelete(req.params.userId)
+                        .then((userDeletionStats) => {
+                            res.status(200).json({
+                                message: "Successfully deleted user and all associated thoughts",
+                                userDeletionStats,
+                                thoughtDeletionStats
+                            });
+                        })
+                        .catch((err) => {
+                            throw new Error(err);
+                        })
 
-                //include in final callback in case an error was thrown earlier.
-                res.status(200).json({
-                    message: `Successfully added ${friend.username} as a friend of ${user.username}`
+
+                })
+                .catch((err) => {
+                    throw new Error(err);
                 });
-            });
+
+
+
+
         })
-        .catch((err)=> {
-            throw new Error(err);
+        .catch((err) => {
+            res.status(500).json({
+                message: "An internal server error occurred",
+                err
+            })
         });
-    })
-    .catch((err)=> {
-        res.status(500).json({
-            message: "An internal server error occurred",
-            err
+};
+
+const addNewFriend = (req, res) => {
+    User.findById(req.params.userId)
+        .then((user) => {
+            if (!user) {
+                res.status(404).json({
+                    message: "No user with this ID found",
+                });
+                return;
+            }
+
+            if (user.friends.includes(req.params.friendId)) {
+                res.status(400).json({
+                    message: "These users are already friends",
+                });
+                return;
+            }
+
+            User.findById(req.params.friendId)
+                .then((friend) => {
+                    if (!friend) {
+                        res.status(404).json({
+                            message: "No user with this ID found to add as a friend"
+                        });
+                        return;
+                    }
+
+                    user.friends.push(friend._id);
+                    friend.friends.push(user._id);
+                    user.save((err) => {
+                        if (err) {
+                            res.status(500).json({
+                                message: "An internal server error occurred",
+                                err
+                            });
+                            return;
+                        }
+                    });
+                    friend.save((err) => {
+                        if (err) {
+                            res.status(500).json({
+                                message: "An internal server error occurred",
+                                err
+                            });
+                            return;
+                        }
+
+                        //include in final callback in case an error was thrown earlier.
+                        res.status(200).json({
+                            message: `Successfully added ${friend.username} as a friend of ${user.username}`
+                        });
+                    });
+                })
+                .catch((err) => {
+                    throw new Error(err);
+                });
+        })
+        .catch((err) => {
+            res.status(500).json({
+                message: "An internal server error occurred",
+                err
+            });
         });
-    });
 };
 
 const removeFriend = (req, res) => {
+    User.findById(req.params.userId)
+        .then((user) => {
+            if (!user) {
+                res.status(404).json({
+                    message: "No user with this ID could be found",
+                });
+                return;
+            }
+
+            if (!user.friends.includes(req.params.friendId)) {
+                res.status(400).json({
+                    message: "This user does not have any friends with this ID",
+                });
+                return;
+            }
+
+            User.findById(req.params.friendId)
+                .then((friend) => {
+                    //As there may be stub friend IDs, we need to check the friend exists. If not, we will just remove it from the original users list
+                    if (!friend) {
+                        user.friends.splice(user.friends.indexOf(req.params.friendId), 1);
+                        user.save((err) => {
+                            if (err) throw new Error(err);
+
+                            res.status(200).json({
+                                message: "Successfully removed friend"
+                            });
+
+                        });
+                    } else {
+                        friend.friends.splice(friend.friends.indexOf(req.params.userId), 1);
+                        user.friends.splice(user.friends.indexOf(req.params.friendId), 1);
+                        friend.save((err) => {
+                            if (err) {
+                                res.status(500).json({
+                                    message: "An internal server error occurred",
+                                    err,
+                                });
+                                return;
+                            }
+                        })
+                        user.save((err) => {
+                            if (err) {
+                                res.status(500).json({
+                                    message: "An internal server error occurred",
+                                    err
+                                });
+                                return;
+                            }
+                            res.status(200).json({
+                                message: "Successfully removed friend",
+                            });
+                        })
+                    }
+                })
+
+        })
+        .catch((err) => {
+            res.status(500).json({
+                message: "An internal server error occurred",
+                err,
+            });
+        });
 
 };
 
