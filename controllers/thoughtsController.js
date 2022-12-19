@@ -117,6 +117,38 @@ const updateThought = (req, res) => {
 };
 
 const deleteThought = (req, res) => {
+    Thought.findByIdAndDelete(req.params.thoughtId)
+    .then((deletedThought)=> {
+        
+        User.findOne({
+            username: deletedThought.username,
+        })
+        .then((user)=> {
+            user.thoughts.splice(user.thoughts.indexOf(deletedThought._id), 1);
+            user.save((err) => {
+                if(err){
+                    res.status(500).json({
+                        message: "An internal server error occurred",
+                        err
+                    });
+                    return;
+                }
+
+                res.status(200).json({
+                    message: "Successfully deleted thought",
+                    deletedThought
+                })
+            })
+        })
+
+
+    })
+    .catch((err)=> {
+        res.status(500).json({
+            message: "An internal server error occurred",
+            err
+        });
+    })
 
 };
 
