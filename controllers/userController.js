@@ -41,8 +41,6 @@ const createNewUser = (req, res) => {
     User.create({
         username: req.body.username,
         email: req.body.email,
-        thoughts: [],
-        friends: [],
     })
         .then((user) => {
             res.status(201).json({
