@@ -38,7 +38,7 @@ const createThought = (req, res) => {
         return;
     }
 
-    User.find({
+    User.findOne({
         username: req.body.username
     })
     .then((user) => {
@@ -63,6 +63,12 @@ const createThought = (req, res) => {
                     });
                     return;
                 }
+
+                res.status(201).json({
+                    message: "Thought has been successfully added",
+                    thought: post
+                });
+
             })
         })
         .catch((err)=> {
@@ -76,7 +82,7 @@ const createThought = (req, res) => {
             err
         });
     });
-    
+
 };
 
 
