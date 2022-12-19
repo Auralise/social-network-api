@@ -104,10 +104,6 @@ const deleteUser = (req, res) => {
 
 };
 
-const getUsersFriends = (req, res) => {
-
-};
-
 const addNewFriend = (req, res) => {
 
 };
@@ -127,7 +123,6 @@ module.exports = {
     createNewUser,
     updateUser,
     deleteUser,
-    getUsersFriends,
     addNewFriend,
     removeFriend
 }
