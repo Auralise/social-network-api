@@ -1,6 +1,4 @@
 const { Schema, Types } = require("mongoose");
-const DateTime = require("luxon");
-
 
 const reactionSchema = new Schema({
     reactionId: {
@@ -19,8 +17,7 @@ const reactionSchema = new Schema({
     createdAt: {
         type: Date,
         default: Date.now,
-        //TODO: test - Documentation reports Date.now returns milliseconds, this getter will need to be reviewed once data is in
-        get: v => DateTime.fromMillis(v),
+        get: v =>  v.toString(),
     }
 });
 
