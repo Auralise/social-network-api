@@ -26,6 +26,7 @@ const userSchema = new Schema({
                 ref: "thought"
             },
         ],
+        default: [],
     },
     friends: {
         type: [
@@ -34,6 +35,7 @@ const userSchema = new Schema({
                 ref: "user",
             },
         ],
+        default: [],
     },
 });
 

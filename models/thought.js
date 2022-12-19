@@ -19,7 +19,8 @@ const thoughtSchema = new Schema({
         required: true,
     },
     reactions: {
-        type: [reactionSchema]
+        type: [reactionSchema],
+        default: [],
     }
 });
 
