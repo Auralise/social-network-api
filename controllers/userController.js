@@ -148,7 +148,58 @@ const deleteUser = (req, res) => {
 };
 
 const addNewFriend = (req, res) => {
+    User.findById(req.params.userId)
+    .then((user)=> {
+        if(!user){
+            res.status(404).json({
+                message: "No user with this ID found",
+            });
+            return;
+        }
+        if(user.friends.includes(req.params.friendId)){
+            res.status(400).json({
+                message: "These users are already friends",
+            });
+            return;
+        }
 
+        User.findById(req.params.friendId)
+        .then((friend)=> {
+            if(!friend){
+                res.status(404).json({
+                    message: "No user with this ID found to add as a friend"
+                });
+                return;
+            }
+
+            user.friends.push(friend._id);
+            friend.friends.push(user._id);
+            user.save((err)=> {
+                if(err){
+                    throw new Error(err);
+                } 
+            });
+            friend.save((err)=> {
+                if(err){
+                    throw new Error(err);
+                }
+
+                //include in final callback in case an error was thrown earlier.
+                res.status(200).json({
+                    message: `Successfully added ${friend.username} as a friend of ${user.username}`
+                });
+            });
+        })
+        .catch((err)=> {
+            throw new Error(err);
+        });
+    })
+    .catch((err)=> {
+        res.status(500).json({
+            message: "An internal server error occurred",
+            err
+        });
+    });
 };
 
 const removeFriend = (req, res) => {
