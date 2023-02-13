@@ -11,7 +11,7 @@ const getAllThoughts = (req, res) => {
 };
 
 const getThoughtById = (req, res) => {
-    Thought.findById(req.param.thoughtId)
+    Thought.findById(req.params.thoughtId)
         .then((post) => {
             if (!post) {
                 res.status(404).json({
