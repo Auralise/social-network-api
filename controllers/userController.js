@@ -41,8 +41,6 @@ const createNewUser = (req, res) => {
     User.create({
         username: req.body.username,
         email: req.body.email,
-        thoughts: [],
-        friends: [],
     })
         .then((user) => {
             res.status(201).json({
@@ -118,17 +116,33 @@ const deleteUser = (req, res) => {
             })
                 .then((thoughtDeletionStats) => {
                     // Thought needs to be put into how to remove the user ID from friends lists. This would be where it is done
-                    User.findByIdAndDelete(req.params.userId)
-                        .then((userDeletionStats) => {
-                            res.status(200).json({
-                                message: "Successfully deleted user and all associated thoughts",
-                                userDeletionStats,
-                                thoughtDeletionStats
-                            });
-                        })
-                        .catch((err) => {
-                            throw new Error(err);
-                        })
+                    User.find({
+                        friends: req.params.userId,
+                    })
+                    .then((usersFriends) => {
+                        for(let i = 0; i < usersFriends.length; i++){
+                            usersFriends[i].friends.splice(usersFriends[i].friends.indexOf(req.params.userId), 1);
+                            usersFriends[i].save();
+                        }
+    
+                        User.findByIdAndDelete(req.params.userId)
+                            .then((userDeletionStats) => {
+                                res.status(200).json({
+                                    message: "Successfully deleted user and all associated thoughts",
+                                    userDeletionStats,
+                                    thoughtDeletionStats
+                                });
+                            })
+                            .catch((err) => {
+                                throw new Error(err);
+                            })
+
+                    })
+                    .catch ((err) => {
+                        throw new Error(err);
+                    });
+                    
+
 
 
                 })
