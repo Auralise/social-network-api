@@ -11,7 +11,7 @@ const getAllThoughts = (req, res) => {
 };
 
 const getThoughtById = (req, res) => {
-    Thought.findById(req.param.thoughtId)
+    Thought.findById(req.params.thoughtId)
         .then((post) => {
             if (!post) {
                 res.status(404).json({
@@ -189,12 +189,8 @@ const createReaction = (req, res) => {
                     });
 
                     post.save((err) => {
-                        if(err){
-                            res.status(500).json({
-                                message: "An internal server error occurred",
-                                err
-                            });
-                            return;
+                        if (err) {
+                            throw new Error(err);
                         }
                         res.status(201).json({
                             message: "Successfully created a new reaction",
@@ -219,7 +215,42 @@ const createReaction = (req, res) => {
 
 };
 const deleteReaction = (req, res) => {
+    Thought.findById(req.params.thoughtId)
+        .then((thought) => {
+            if (!thought) {
+                res.status(404).json({
+                    message: "No thought with that ID found"
+                });
+                return;
+            }
 
+            if (!thought.reactions.some((reaction) => reaction.reactionId.toString() === req.params.reactionId)) {
+                res.status(404).json({
+                    message: "No reaction by that ID found",
+                });
+                return;
+            }
+
+            thought.reactions.splice(thought.reactions.findIndex(reaction => reaction.reactionId.toString() === req.params.reactionId), 1);
+
+            thought.save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            res.status(200).json({
+                message: `Successfully removed reaction ${req.params.reactionId} from thought ${req.params.thoughtId}`
+            })
+
+
+        })
+        .catch((err) => {
+            res.status(500).json({
+                message: "An internal server error occurred",
+                err
+            })
+        })
 };
 
 
