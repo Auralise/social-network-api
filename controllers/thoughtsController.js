@@ -224,9 +224,6 @@ const deleteReaction = (req, res) => {
                 return;
             }
 
-            console.log(req.params.reactionId);
-            console.log(thought.reactions);
-
             if (!thought.reactions.some((reaction) => reaction.reactionId.toString() === req.params.reactionId)) {
                 res.status(404).json({
                     message: "No reaction by that ID found",
