@@ -188,34 +188,72 @@ const createReaction = (req, res) => {
                         username: user.username,
                     });
 
-            post.save((err) => {
-                if (err) {
+                    post.save((err) => {
+                        if (err) {
+                            throw new Error(err);
+                        }
+                        res.status(201).json({
+                            message: "Successfully created a new reaction",
+                            post
+                        });
+                    })
+
+                })
+                .catch((err) => {
                     throw new Error(err);
-                }
-                res.status(201).json({
-                    message: "Successfully created a new reaction",
-                    post
                 });
-            })
+
+
 
         })
         .catch((err) => {
-            throw new Error(err);
+            res.status(500).json({
+                message: "An internal server error occured",
+                err
+            });
         });
-
-
-
-})
-        .catch ((err) => {
-    res.status(500).json({
-        message: "An internal server error occured",
-        err
-    });
-});
 
 };
 const deleteReaction = (req, res) => {
+    Thought.findById(req.params.thoughtId)
+        .then((thought) => {
+            if (!thought) {
+                res.status(404).json({
+                    message: "No thought with that ID found"
+                });
+                return;
+            }
 
+            console.log(req.params.reactionId);
+            console.log(thought.reactions);
+
+            if (!thought.reactions.some((reaction) => reaction.reactionId.toString() === req.params.reactionId)) {
+                res.status(404).json({
+                    message: "No reaction by that ID found",
+                });
+                return;
+            }
+
+            thought.reactions.splice(thought.reactions.findIndex(reaction => reaction.reactionId.toString() === req.params.reactionId), 1);
+
+            thought.save((err) => {
+                if (err) {
+                    throw new Error(err);
+                }
+            });
+
+            res.status(200).json({
+                message: `Successfully removed reaction ${req.params.reactionId} from thought ${req.params.thoughtId}`
+            })
+
+
+        })
+        .catch((err) => {
+            res.status(500).json({
+                message: "An internal server error occurred",
+                err
+            })
+        })
 };
 
 
