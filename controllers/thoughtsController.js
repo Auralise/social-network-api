@@ -188,34 +188,30 @@ const createReaction = (req, res) => {
                         username: user.username,
                     });
 
-                    post.save((err) => {
-                        if(err){
-                            res.status(500).json({
-                                message: "An internal server error occurred",
-                                err
-                            });
-                            return;
-                        }
-                        res.status(201).json({
-                            message: "Successfully created a new reaction",
-                            post
-                        });
-                    })
-
-                })
-                .catch((err) => {
+            post.save((err) => {
+                if (err) {
                     throw new Error(err);
+                }
+                res.status(201).json({
+                    message: "Successfully created a new reaction",
+                    post
                 });
-
-
+            })
 
         })
         .catch((err) => {
-            res.status(500).json({
-                message: "An internal server error occured",
-                err
-            });
+            throw new Error(err);
         });
+
+
+
+})
+        .catch ((err) => {
+    res.status(500).json({
+        message: "An internal server error occured",
+        err
+    });
+});
 
 };
 const deleteReaction = (req, res) => {
